@@ -38,9 +38,12 @@ di/             Hilt modules wiring data -> domain
 
 1. Open the project root in Android Studio (Koala+ recommended).
 2. **Firebase**: `app/google-services.json` in this repo is a **placeholder**. Create a real
-   Firebase project (Authentication + Firestore + Analytics + Crashlytics enabled), register
-   the app with package name `com.cdlpermitprep.usa`, and replace `app/google-services.json`
-   with the file Firebase gives you.
+   Firebase project (Authentication + Firestore + Analytics + Crashlytics enabled), and
+   register **two** Android apps in it — `com.cdlpermitprep.usa` (release) and
+   `com.cdlpermitprep.usa.debug` (debug, matches the `applicationIdSuffix` in
+   `app/build.gradle.kts`) — then replace `app/google-services.json` with the file Firebase
+   gives you (it can contain both `client` entries in one file). Skipping the debug entry
+   makes `processDebugGoogleServices` fail with "No matching client found".
 3. **Billing**: create the following products in Google Play Console once you're ready to test
    purchases (see `data/billing/BillingManager.kt` -> `BillingProducts`):
    - Subscriptions: `cdl_premium_monthly`, `cdl_premium_yearly`
