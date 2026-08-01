@@ -1,5 +1,6 @@
 package com.cdlpermitprep.usa.presentation.onboarding
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -26,6 +27,7 @@ private val pages = listOf(
     OnboardingPage("📈", "Track your readiness", "See accuracy, streaks, and a pass prediction so you know exactly when you're ready.", CdlColors.Purple),
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
