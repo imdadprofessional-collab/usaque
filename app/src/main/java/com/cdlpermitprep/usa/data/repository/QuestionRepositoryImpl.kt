@@ -9,6 +9,7 @@ import com.cdlpermitprep.usa.domain.model.Question
 import com.cdlpermitprep.usa.domain.repository.QuestionFilter
 import com.cdlpermitprep.usa.domain.repository.QuestionRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
