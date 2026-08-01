@@ -23,7 +23,7 @@ di/             Hilt modules wiring data -> domain
   implementation can be swapped (e.g. a remote-backed one) without touching UI.
 - **Question bank scales independently of memory**: `QuestionDao` exposes `PagingSource`
   queries (see `data/local/dao/QuestionDao.kt`) so the app never loads the full table into
-  memory. It ships with ~300 original, hand-written questions bundled as
+  memory. It ships with ~500 original, hand-written questions bundled as
   `app/src/main/assets/questions_seed.json` and loaded by `AssetQuestionLoader` on first
   launch — the schema and indexes are designed for 10k/50k/100k+ rows, so growing the bank is
   purely a matter of adding more rows to that JSON (or swapping in a real bulk CSV/JSON
@@ -66,7 +66,7 @@ di/             Hilt modules wiring data -> domain
      that backend piece isn't included here.
 4. Build & run. On first launch the app seeds its local Room database from
    `app/src/main/assets/questions_seed.json` (loaded by `AssetQuestionLoader`), so it works
-   fully offline immediately with ~300 questions across every category and ~15 states.
+   fully offline immediately with 500+ questions across every category, all four premium packs (60-70 questions each), and 15 states.
 
 ## Scaling the question bank
 
