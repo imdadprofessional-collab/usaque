@@ -59,6 +59,30 @@ shipped as an asset, or fetched once and cached) that calls `QuestionDao.insertA
 batches. The `QuestionEntity` schema (state, category, subCategory, difficulty, tags, etc.)
 and its indexes are already shaped for large banks — nothing else in the app needs to change.
 
+## Building an APK/AAB via GitHub Actions
+
+`.github/workflows/android-build.yml` builds the app on every push and on demand
+(`workflow_dispatch`) — no local Android Studio setup required:
+
+1. Push to this branch (or open a PR to `main`/`master`), or trigger it manually from the
+   **Actions** tab → **Android Build (APK & AAB)** → **Run workflow**.
+2. The workflow builds a debug APK (`assembleDebug`) and a release AAB (`bundleRelease`) and
+   uploads both as workflow artifacts — open the finished run and download
+   `cdl-permit-prep-debug-apk` / `cdl-permit-prep-release-aab` from the **Artifacts** section.
+3. The debug APK is auto-signed with the standard Android debug key, so it installs straight
+   onto a device/emulator for testing.
+4. The release AAB builds **unsigned** by default (safe: the build never fails for missing
+   secrets). To get a signed AAB ready for Play Console, add these repo secrets
+   (Settings → Secrets and variables → Actions):
+   - `RELEASE_KEYSTORE_BASE64` — your upload keystore, base64-encoded (`base64 -w0 my.keystore`)
+   - `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`
+
+   Once all four are set, the same workflow run signs the AAB automatically (see the
+   `hasReleaseSigningConfig` guard in `app/build.gradle.kts`).
+5. Optionally add a `GOOGLE_SERVICES_JSON` secret (the full file contents) to build against
+   your real Firebase project instead of the placeholder committed at
+   `app/google-services.json`.
+
 ## Reusing this codebase for a different exam
 
 Only two things are exam-specific: the seed data in `data/local/seed/SeedQuestionProvider.kt`

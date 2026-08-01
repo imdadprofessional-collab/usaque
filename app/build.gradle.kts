@@ -7,6 +7,18 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
+// Release signing is optional and driven entirely by env vars so CI can sign when secrets
+// are configured (see .github/workflows/android-build.yml) while local/CI builds without
+// them still produce an unsigned release AAB instead of failing the build.
+val releaseStoreFile = System.getenv("CDL_RELEASE_STORE_FILE")
+val releaseStorePassword = System.getenv("CDL_RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("CDL_RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("CDL_RELEASE_KEY_PASSWORD")
+val hasReleaseSigningConfig = !releaseStoreFile.isNullOrBlank() &&
+    !releaseStorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
+
 android {
     namespace = "com.cdlpermitprep.usa"
     compileSdk = 34
@@ -22,11 +34,25 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    if (hasReleaseSigningConfig) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
