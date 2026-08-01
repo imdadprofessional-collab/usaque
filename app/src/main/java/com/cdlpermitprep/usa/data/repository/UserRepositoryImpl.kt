@@ -85,7 +85,9 @@ class UserRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun awardXp(amount: Int) = userPreferences.addXp(amount)
+    override suspend fun awardXp(amount: Int) {
+        userPreferences.addXp(amount)
+    }
 
     override suspend fun recordStudySession() {
         val epochDay = LocalDate.now().toEpochDay()
