@@ -8,8 +8,8 @@ import com.cdlpermitprep.usa.domain.model.AnswerOption
 import com.cdlpermitprep.usa.domain.model.PracticeMode
 import com.cdlpermitprep.usa.domain.model.Question
 import com.cdlpermitprep.usa.domain.repository.BookmarkRepository
-import com.cdlpermitprep.usa.domain.repository.QuestionRepository
 import com.cdlpermitprep.usa.domain.repository.UserRepository
+import com.cdlpermitprep.usa.domain.usecase.GetRandomQuestionsUseCase
 import com.cdlpermitprep.usa.domain.usecase.SubmitAnswerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +36,7 @@ data class PracticeUiState(
 
 @HiltViewModel
 class PracticeViewModel @Inject constructor(
-    private val questionRepository: QuestionRepository,
+    private val getRandomQuestionsUseCase: GetRandomQuestionsUseCase,
     private val bookmarkRepository: BookmarkRepository,
     private val submitAnswerUseCase: SubmitAnswerUseCase,
     private val userRepository: UserRepository,
@@ -59,7 +59,7 @@ class PracticeViewModel @Inject constructor(
     private fun loadQuestions() {
         viewModelScope.launch {
             val count = if (mode == PracticeMode.DAILY_CHALLENGE) 10 else 20
-            val questions = questionRepository.randomQuestions(state = null, category = categoryName, limit = count)
+            val questions = getRandomQuestionsUseCase(state = null, category = categoryName, limit = count)
             _uiState.value = _uiState.value.copy(
                 loading = false,
                 questions = questions,

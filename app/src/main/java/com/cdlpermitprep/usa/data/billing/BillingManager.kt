@@ -8,6 +8,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,6 +38,9 @@ class BillingManager @Inject constructor(
 ) : PurchasesUpdatedListener {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val _ownedPackIds = MutableStateFlow<Set<String>>(emptySet())
+    val ownedPackIds: StateFlow<Set<String>> = _ownedPackIds.asStateFlow()
 
     private val billingClient: BillingClient = BillingClient.newBuilder(context)
         .setListener(this)
@@ -89,8 +95,17 @@ class BillingManager @Inject constructor(
             QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
         )
         val allPurchases = subsResult.purchasesList + inAppResult.purchasesList
-        val hasActivePremium = allPurchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+        val purchasedProductIds = allPurchases
+            .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+            .flatMap { it.products }
+            .toSet()
+
+        // A subscription or the lifetime purchase unlocks everything; owning an individual
+        // pack (e.g. pack_hazmat) does NOT grant blanket premium — only that pack's content.
+        val fullPremiumProductIds = BillingProducts.SUBSCRIPTIONS + BillingProducts.LIFETIME
+        val hasActivePremium = purchasedProductIds.any { it in fullPremiumProductIds }
         userPreferences.setPremium(hasActivePremium)
+        _ownedPackIds.value = purchasedProductIds.filter { it in BillingProducts.PREMIUM_PACKS }.toSet()
 
         allPurchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
             .forEach { acknowledgePurchase(it) }

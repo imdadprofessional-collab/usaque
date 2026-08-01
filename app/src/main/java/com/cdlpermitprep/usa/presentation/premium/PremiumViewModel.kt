@@ -15,6 +15,7 @@ data class PremiumUiState(
     val loading: Boolean = true,
     val products: List<BillingProduct> = emptyList(),
     val isPremium: Boolean = false,
+    val ownedPackIds: Set<String> = emptySet(),
     val message: String? = null,
 )
 
@@ -30,6 +31,11 @@ class PremiumViewModel @Inject constructor(
         viewModelScope.launch {
             billingRepository.premiumStatus().collect { premium ->
                 _uiState.value = _uiState.value.copy(isPremium = premium)
+            }
+        }
+        viewModelScope.launch {
+            billingRepository.ownedPackIds().collect { owned ->
+                _uiState.value = _uiState.value.copy(ownedPackIds = owned)
             }
         }
         loadProducts()

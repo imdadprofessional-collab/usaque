@@ -93,13 +93,14 @@ fun HomeScreen(
         ) {
             items(state.categories, key = { it.name }) { category ->
                 val index = state.categories.indexOf(category)
+                val unlocked = state.isCategoryUnlocked(category)
                 CollectionCard(
                     title = category.name,
                     subtitle = if (category.isPremium) "Premium" else "Free",
                     icon = categoryIcons[index % categoryIcons.size],
                     iconColor = categoryColors[index % categoryColors.size],
-                    badge = if (category.isPremium && !state.isPremium) "LOCKED" else null,
-                    onClick = { if (category.isPremium && !state.isPremium) onOpenPremium() else onOpenCategory(category.name) },
+                    badge = if (!unlocked) "LOCKED" else null,
+                    onClick = { if (!unlocked) onOpenPremium() else onOpenCategory(category.name) },
                 )
             }
         }

@@ -25,6 +25,7 @@ fun QuestionEntity.toDomain(): Question = Question(
     reference = reference,
     tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
     isPremium = isPremium,
+    packId = packId,
 )
 
 fun ExamAttemptEntity.toDomain(): ExamAttempt = ExamAttempt(

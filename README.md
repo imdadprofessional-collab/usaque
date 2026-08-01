@@ -23,11 +23,23 @@ di/             Hilt modules wiring data -> domain
   implementation can be swapped (e.g. a remote-backed one) without touching UI.
 - **Question bank scales independently of memory**: `QuestionDao` exposes `PagingSource`
   queries (see `data/local/dao/QuestionDao.kt`) so the app never loads the full table into
-  memory. It ships with a small seed set (`data/local/seed/SeedQuestionProvider.kt`) but the
-  schema and indexes are designed for 10k/50k/100k+ rows — swap the seeder for a bulk
-  CSV/JSON importer to scale up.
+  memory. It ships with ~300 original, hand-written questions bundled as
+  `app/src/main/assets/questions_seed.json` and loaded by `AssetQuestionLoader` on first
+  launch — the schema and indexes are designed for 10k/50k/100k+ rows, so growing the bank is
+  purely a matter of adding more rows to that JSON (or swapping in a real bulk CSV/JSON
+  import pipeline); nothing else in the app needs to change. See "Scaling the question bank"
+  below.
 - **Firebase stores only small, per-user data** (profile, premium status, purchase history,
   bookmarks, streak, settings, exam history) — never the question bank itself.
+- **Premium packs, not just a single paywall**: each `QuestionEntity`/`Question` carries an
+  optional `packId` (see `domain/model/Category.kt` -> `CategoryPacks`). Hazardous Materials,
+  Tank Vehicles, Doubles/Triples, and Passenger/School Bus are gated categories that can be
+  unlocked individually (`pack_hazmat`, `pack_tanker`, `pack_doubles_triples`,
+  `pack_passenger`, one-time purchases) *or* all at once via any subscription/lifetime
+  purchase. `BillingRepository.ownedPackIds()` + `premiumStatus()` drive this everywhere a
+  question is fetched (`GetRandomQuestionsUseCase`) and everywhere a category is shown
+  (`HomeViewModel.isCategoryUnlocked`), so a free user can never receive premium-pack
+  questions through any practice mode, mock exam included.
 - **AI is not wired into the UI directly.** `domain/ai/AiInterfaces.kt` defines
   `AnswerExplanationProvider`, `StudyPlanner`, `PersonalTutor`, and
   `QuestionRecommendationEngine`. Today's bindings (`di/AiModule.kt`) point at simple
@@ -53,14 +65,30 @@ di/             Hilt modules wiring data -> domain
      Play Developer API) before granting entitlements for anything beyond a soft unlock —
      that backend piece isn't included here.
 4. Build & run. On first launch the app seeds its local Room database from
-   `SeedQuestionProvider` so it works fully offline immediately.
+   `app/src/main/assets/questions_seed.json` (loaded by `AssetQuestionLoader`), so it works
+   fully offline immediately with ~300 questions across every category and ~15 states.
 
 ## Scaling the question bank
 
-Replace/extend `SeedQuestionProvider` with a real import pipeline (e.g. read a CSV/JSON bundle
-shipped as an asset, or fetched once and cached) that calls `QuestionDao.insertAll()` in
-batches. The `QuestionEntity` schema (state, category, subCategory, difficulty, tags, etc.)
-and its indexes are already shaped for large banks — nothing else in the app needs to change.
+The bank ships as `app/src/main/assets/questions_seed.json`, an array of objects matching
+`QuestionEntity` (`state`, `category`, `subCategory`, `difficulty`, `question`, `optionA`-`D`,
+`correctAnswer`, `explanation`, `tags`, `isPremium`, optional `packId`). To grow it:
+
+- **Add more rows to that JSON** (or a generation script that produces it — see the shape of
+  each entry) and rebuild; `AssetQuestionLoader` bulk-inserts everything in one pass via
+  `QuestionDao.insertAll()`.
+- For a genuinely large bank (10k-100k+), swap `AssetQuestionLoader` for a pipeline that reads
+  a bundled/downloaded CSV or JSON in batches instead of one `assets` file — `QuestionEntity`'s
+  schema and indexes are already shaped for that scale; nothing else in the app needs to change.
+- `AssetQuestionLoader` falls back to the small hardcoded set in
+  `data/local/seed/SeedQuestionProvider.kt` if the asset is ever missing or malformed, so the
+  app never ships with zero offline content.
+
+**On question accuracy**: the bundled questions are original content written from
+publicly-known CDL safety/regulatory concepts (the source material — FMCSA and state DMV
+commercial driver manuals — is U.S. government public domain). They have not been reviewed by
+a CDL subject-matter expert or checked against current state-by-state statutes, so treat them
+as a solid starting bank, not a substitute for your state's official manual before a real exam.
 
 ## Building an APK/AAB via GitHub Actions
 
@@ -88,14 +116,17 @@ and its indexes are already shaped for large banks — nothing else in the app n
 
 ## Reusing this codebase for a different exam
 
-Only two things are exam-specific: the seed data in `data/local/seed/SeedQuestionProvider.kt`
-and branding (`app_name`, colors/theme, package name, Play Store assets). Swap those and the
-rest of the architecture — Room schema, repositories, Billing, Firebase sync, navigation,
-gamification, analytics — carries over unchanged.
+Only two things are exam-specific: the seed data in
+`app/src/main/assets/questions_seed.json` and branding (`app_name`, colors/theme, package
+name, Play Store assets). Swap those and the rest of the architecture — Room schema,
+repositories, Billing (including the pack system), Firebase sync, navigation, gamification,
+analytics — carries over unchanged.
 
 ## Notes on this build
 
-This is a complete, compilable-by-design source tree (Gradle/AGP 8.5, Kotlin 1.9, Compose BOM
-2024.06) generated in an environment without the Android SDK, so it has **not** been run
-through `./gradlew assembleDebug` here. Before shipping, open it in Android Studio, sync
-Gradle, and resolve any dependency-version bumps Android Studio suggests.
+This source tree builds successfully end-to-end via the GitHub Actions workflow in this repo
+(`.github/workflows/android-build.yml` — `assembleDebug` + `bundleRelease` both green), using
+Gradle/AGP 8.5, Kotlin 1.9, Compose BOM 2024.06. It was developed in an environment without a
+local Android SDK, so local verification happened entirely through that CI workflow rather
+than `./gradlew` on a dev machine — if you hit a version-resolution hiccup opening it in
+Android Studio, let Android Studio's suggested upgrades resolve it.

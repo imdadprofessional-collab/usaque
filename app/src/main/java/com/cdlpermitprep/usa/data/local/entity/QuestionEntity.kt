@@ -15,6 +15,7 @@ import androidx.room.PrimaryKey
         Index("category"),
         Index("subCategory"),
         Index("difficulty"),
+        Index("packId"),
         Index(value = ["state", "category"]),
     ],
 )
@@ -35,4 +36,6 @@ data class QuestionEntity(
     val reference: String? = null,
     val tags: String = "",
     val isPremium: Boolean = false,
+    /** Non-null for content gated behind an individually purchasable pack (see [com.cdlpermitprep.usa.data.billing.BillingProducts]); null means either free, or unlocked by any full premium subscription/lifetime purchase when [isPremium] is true. */
+    val packId: String? = null,
 )

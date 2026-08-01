@@ -56,4 +56,6 @@ class BillingRepositoryImpl @Inject constructor(
     }.onFailure { Timber.w(it, "Restore purchases failed") }
 
     override suspend fun purchaseHistory(): List<PurchaseHistoryItem> = emptyList() // populated from Firestore purchase history in a full build
+
+    override fun ownedPackIds(): Flow<Set<String>> = billingManager.ownedPackIds
 }

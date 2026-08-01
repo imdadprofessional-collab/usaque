@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cdlpermitprep.usa.data.preferences.UserPreferences
 import com.cdlpermitprep.usa.domain.model.AnswerOption
 import com.cdlpermitprep.usa.domain.model.Question
-import com.cdlpermitprep.usa.domain.repository.QuestionRepository
+import com.cdlpermitprep.usa.domain.usecase.GetRandomQuestionsUseCase
 import com.cdlpermitprep.usa.domain.usecase.SubmitAnswerUseCase
 import com.cdlpermitprep.usa.domain.usecase.SubmitExamUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +34,7 @@ data class MockExamUiState(
 
 @HiltViewModel
 class MockExamViewModel @Inject constructor(
-    private val questionRepository: QuestionRepository,
+    private val getRandomQuestionsUseCase: GetRandomQuestionsUseCase,
     private val submitAnswerUseCase: SubmitAnswerUseCase,
     private val submitExamUseCase: SubmitExamUseCase,
     private val userPreferences: UserPreferences,
@@ -48,7 +48,7 @@ class MockExamViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val state = userPreferences.selectedState.first()
-            val questions = questionRepository.randomQuestions(state = state, category = null, limit = EXAM_QUESTION_COUNT)
+            val questions = getRandomQuestionsUseCase(state = state, category = null, limit = EXAM_QUESTION_COUNT)
             _uiState.value = _uiState.value.copy(loading = false, questions = questions)
             startedAt = System.currentTimeMillis()
         }
