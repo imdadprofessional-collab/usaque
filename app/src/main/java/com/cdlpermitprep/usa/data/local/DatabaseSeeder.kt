@@ -1,0 +1,23 @@
+package com.cdlpermitprep.usa.data.local
+
+import com.cdlpermitprep.usa.data.local.seed.SeedQuestionProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class DatabaseSeeder @Inject constructor(
+    private val database: CdlDatabase,
+) {
+    fun seedIfEmpty(scope: CoroutineScope) {
+        scope.launch {
+            val existing = database.questionDao().count()
+            if (existing == 0) {
+                Timber.i("Seeding question bank with starter offline content")
+                database.questionDao().insertAll(SeedQuestionProvider.all())
+            }
+        }
+    }
+}
