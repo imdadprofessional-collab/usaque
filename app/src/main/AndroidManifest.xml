@@ -34,7 +34,7 @@
             CdlApplication implements Configuration.Provider so WorkManager is initialized
             on demand with HiltWorkerFactory. androidx.startup's WorkManagerInitializer would
             otherwise get there first and initialize WorkManager with the default factory,
-            which cannot construct @HiltWorker workers -- DailyReminderWorker would fail at
+            which cannot construct @HiltWorker workers, so DailyReminderWorker would fail at
             runtime. Removing just that initializer leaves androidx.startup intact for
             anything else that uses it.
         -->
