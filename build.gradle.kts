@@ -1,5 +1,9 @@
 plugins {
-    id("com.android.application") version "8.6.0" apply false
+    // KSP's Gradle plugin calls AndroidComponentsExtension.addKspConfigurations(boolean)
+    // unconditionally, and that API does not exist in AGP 8.6 (NoSuchMethodError during
+    // configuration). Every KSP release new enough to run on Kotlin 2.x needs it, so AGP
+    // has to move too. 8.13 also requires Gradle 8.13+, hence the wrapper bump to 8.14.3.
+    id("com.android.application") version "8.13.0" apply false
     // Play Billing 9.x is compiled with Kotlin 2.3 (its .kotlin_module metadata is version
     // 2.3.0), and a Kotlin 1.9 compiler refuses to read anything newer than 1.9 metadata.
     // Staying on 1.9 is therefore incompatible with the Billing version Play now requires.
@@ -17,5 +21,6 @@ plugins {
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    // rootProject.buildDir is deprecated and slated for removal in Gradle 9.
+    delete(rootProject.layout.buildDirectory)
 }
