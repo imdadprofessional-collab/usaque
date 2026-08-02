@@ -2,6 +2,8 @@ package com.cdlpermitprep.usa.presentation.category
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +30,12 @@ fun CategoryScreen(
     onBack: () -> Unit,
     onStartPractice: (PracticeMode, String) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+    ) {
         CdlTopBar(title = categoryName, showBack = true, onBack = onBack)
         Spacer(Modifier.height(12.dp))
         Text("Choose how you want to practice", style = MaterialTheme.typography.bodyLarge, color = CdlColors.TextSecondaryLight)

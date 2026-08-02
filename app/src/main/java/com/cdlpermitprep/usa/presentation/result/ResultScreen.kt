@@ -1,6 +1,8 @@
 package com.cdlpermitprep.usa.presentation.result
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +31,12 @@ fun ResultScreen(
             CircularProgressIndicator()
             return@Box
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Scrolling the inner column rather than the Box keeps the result card centred when it
+        // fits, while still letting it scroll when it does not (small screen, large font).
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(if (current.passed) "🎉" else "📘", style = MaterialTheme.typography.displayLarge)
             Spacer(Modifier.height(12.dp))
             Text(

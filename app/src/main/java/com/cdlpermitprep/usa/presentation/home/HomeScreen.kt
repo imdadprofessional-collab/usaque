@@ -5,8 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -43,68 +45,85 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(
+    // Everything lives inside the grid as full-width header items rather than in a fixed
+    // Column above it. With a fixed header the greeting/stats/banner claimed their full
+    // height first and the grid got whatever was left, so on short screens (or at large
+    // system font scales) the grid collapsed and the last cards were unreachable. As header
+    // items the whole page scrolls as one, at any screen size.
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp),
+            .background(MaterialTheme.colorScheme.background),
     ) {
-        Spacer(Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            CdlIconButton(icon = Icons.Filled.Settings, onClick = onOpenSettings)
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                CdlIconButton(icon = Icons.Filled.Person, onClick = onOpenProfile)
-                CdlIconButton(icon = Icons.Filled.BookmarkBorder, onClick = onOpenBookmarks)
-                CdlIconButton(icon = Icons.Filled.Search, onClick = onOpenSearch)
+        fullWidthItem {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                CdlIconButton(icon = Icons.Filled.Settings, onClick = onOpenSettings)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    CdlIconButton(icon = Icons.Filled.Person, onClick = onOpenProfile)
+                    CdlIconButton(icon = Icons.Filled.BookmarkBorder, onClick = onOpenBookmarks)
+                    CdlIconButton(icon = Icons.Filled.Search, onClick = onOpenSearch)
+                }
             }
         }
 
-        Spacer(Modifier.height(20.dp))
-        Text("Study now.", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Black)
-        Text("Pass anytime.", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Black)
-
-        Spacer(Modifier.height(20.dp))
-        StreakAndReadinessRow(
-            streakDays = state.gamification.streakDays,
-            readiness = state.analytics?.readinessScore ?: 0,
-            level = state.gamification.level,
-            xp = state.gamification.xp,
-        )
-
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-            QuickActionPill(icon = Icons.Filled.Quiz, label = "Mock Exam", color = CdlColors.Pink, onClick = onOpenMockExam, modifier = Modifier.weight(1f))
-            QuickActionPill(icon = Icons.Filled.BarChart, label = "Analytics", color = CdlColors.Purple, onClick = onOpenAnalytics, modifier = Modifier.weight(1f))
+        fullWidthItem {
+            Column {
+                Spacer(Modifier.height(6.dp))
+                Text("Study now.", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Black)
+                Text("Pass anytime.", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Black)
+            }
         }
+
+        fullWidthItem {
+            StreakAndReadinessRow(
+                streakDays = state.gamification.streakDays,
+                readiness = state.analytics?.readinessScore ?: 0,
+                level = state.gamification.level,
+                xp = state.gamification.xp,
+            )
+        }
+
+        fullWidthItem {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                QuickActionPill(icon = Icons.Filled.Quiz, label = "Mock Exam", color = CdlColors.Pink, onClick = onOpenMockExam, modifier = Modifier.weight(1f))
+                QuickActionPill(icon = Icons.Filled.BarChart, label = "Analytics", color = CdlColors.Purple, onClick = onOpenAnalytics, modifier = Modifier.weight(1f))
+            }
+        }
+
         if (!state.isPremium) {
-            Spacer(Modifier.height(12.dp))
-            PremiumBanner(onClick = onOpenPremium)
+            fullWidthItem { PremiumBanner(onClick = onOpenPremium) }
         }
 
-        Spacer(Modifier.height(24.dp))
-        Text("Practice Categories", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
+        fullWidthItem {
+            Text(
+                "Practice Categories",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.weight(1f),
-        ) {
-            items(state.categories, key = { it.name }) { category ->
-                val index = state.categories.indexOf(category)
-                val unlocked = state.isCategoryUnlocked(category)
-                CollectionCard(
-                    title = category.name,
-                    subtitle = if (category.isPremium) "Premium" else "Free",
-                    icon = categoryIcons[index % categoryIcons.size],
-                    iconColor = categoryColors[index % categoryColors.size],
-                    badge = if (!unlocked) "LOCKED" else null,
-                    onClick = { if (!unlocked) onOpenPremium() else onOpenCategory(category.name) },
-                )
-            }
+        itemsIndexed(state.categories, key = { _, category -> category.name }) { index, category ->
+            val unlocked = state.isCategoryUnlocked(category)
+            CollectionCard(
+                title = category.name,
+                subtitle = if (category.isPremium) "Premium" else "Free",
+                icon = categoryIcons[index % categoryIcons.size],
+                iconColor = categoryColors[index % categoryColors.size],
+                badge = if (!unlocked) "LOCKED" else null,
+                onClick = { if (!unlocked) onOpenPremium() else onOpenCategory(category.name) },
+            )
         }
     }
+}
+
+/** A grid row that spans every column, for header content above the category cards. */
+private fun LazyGridScope.fullWidthItem(content: @Composable () -> Unit) {
+    item(span = { GridItemSpan(maxLineSpan) }) { content() }
 }
 
 @Composable

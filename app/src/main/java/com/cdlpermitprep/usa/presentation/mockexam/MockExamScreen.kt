@@ -6,7 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -102,29 +104,38 @@ fun MockExamScreen(
         }
 
         val question = state.currentQuestion ?: return@Column
-        Spacer(Modifier.height(20.dp))
-        Text(question.question, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(20.dp))
 
-        question.options.forEach { (option, text) ->
-            val selected = state.answers[question.id] == option
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (selected) CdlColors.Yellow else MaterialTheme.colorScheme.surface)
-                    .border(2.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(16.dp))
-                    .clickable { viewModel.selectAnswer(option) }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(option.name, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 12.dp))
-                Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        // Scroll the question and options only, so the timer, the question navigator and the
+        // Previous/Next controls stay fixed. Under exam conditions the timer and navigation
+        // must never scroll out of reach, however long the question runs.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(Modifier.height(20.dp))
+            Text(question.question, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(20.dp))
+
+            question.options.forEach { (option, text) ->
+                val selected = state.answers[question.id] == option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (selected) CdlColors.Yellow else MaterialTheme.colorScheme.surface)
+                        .border(2.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(16.dp))
+                        .clickable { viewModel.selectAnswer(option) }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(option.name, fontWeight = FontWeight.Black, modifier = Modifier.padding(end = 12.dp))
+                    Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                }
             }
         }
 
-        Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(bottom = 20.dp)) {
             CdlOutlineButton(text = "Previous", onClick = viewModel::previousQuestion, modifier = Modifier.weight(1f))
             if (state.currentIndex + 1 == state.questions.size) {

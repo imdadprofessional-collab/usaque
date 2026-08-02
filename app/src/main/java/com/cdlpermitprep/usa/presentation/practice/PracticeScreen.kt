@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -71,32 +73,42 @@ fun PracticeScreen(
 
         val question = state.currentQuestion ?: return@Column
 
-        Spacer(Modifier.height(20.dp))
-        Text(question.question, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(20.dp))
+        // The question, its options and the explanation scroll independently: a long question
+        // at a large system font scale otherwise pushes the answer options off-screen with no
+        // way to reach them. The top bar and the Next button stay put so the primary action is
+        // always visible without scrolling to find it.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(Modifier.height(20.dp))
+            Text(question.question, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(20.dp))
 
-        question.options.forEach { (option, text) ->
-            AnswerRow(
-                option = option,
-                text = text,
-                selected = state.selectedAnswer,
-                correctAnswer = question.correctAnswer,
-                revealed = state.isAnswerRevealed,
-                onClick = { viewModel.selectAnswer(option) },
-            )
-            Spacer(Modifier.height(10.dp))
+            question.options.forEach { (option, text) ->
+                AnswerRow(
+                    option = option,
+                    text = text,
+                    selected = state.selectedAnswer,
+                    correctAnswer = question.correctAnswer,
+                    revealed = state.isAnswerRevealed,
+                    onClick = { viewModel.selectAnswer(option) },
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+
+            if (state.isAnswerRevealed) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    state.liveExplanation ?: question.explanation,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CdlColors.TextSecondaryLight,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
         }
 
-        if (state.isAnswerRevealed) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                state.liveExplanation ?: question.explanation,
-                style = MaterialTheme.typography.bodyMedium,
-                color = CdlColors.TextSecondaryLight,
-            )
-        }
-
-        Spacer(Modifier.weight(1f))
         if (state.isAnswerRevealed) {
             CdlPrimaryButton(
                 text = if (state.currentIndex + 1 == state.questions.size) "Finish" else "Next Question",

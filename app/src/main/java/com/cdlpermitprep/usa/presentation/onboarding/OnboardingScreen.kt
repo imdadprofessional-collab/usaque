@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,16 +47,19 @@ fun OnboardingScreen(
         Spacer(Modifier.height(24.dp))
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
             val p = pages[page]
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(p.emoji, style = MaterialTheme.typography.displayLarge)
-                Spacer(Modifier.height(24.dp))
-                Text(p.title, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Spacer(Modifier.height(12.dp))
-                Text(p.body, style = MaterialTheme.typography.bodyLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = CdlColors.TextSecondaryLight)
+            // Box centres the page while the inner column scrolls, so a long page body stays
+            // reachable on small screens without the page losing its centred look when it fits.
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(p.emoji, style = MaterialTheme.typography.displayLarge)
+                    Spacer(Modifier.height(24.dp))
+                    Text(p.title, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Black, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Spacer(Modifier.height(12.dp))
+                    Text(p.body, style = MaterialTheme.typography.bodyLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = CdlColors.TextSecondaryLight)
+                }
             }
         }
         CdlPrimaryButton(

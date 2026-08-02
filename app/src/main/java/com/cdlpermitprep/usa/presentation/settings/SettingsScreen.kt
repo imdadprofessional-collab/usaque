@@ -1,6 +1,8 @@
 package com.cdlpermitprep.usa.presentation.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,7 +27,14 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsState()
     var stateMenuExpanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+    // Settings is a tall stack of cards; it already exceeds a short screen and will exceed any
+    // screen at a large font scale, so the page scrolls.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+    ) {
         CdlTopBar(title = "Settings", showBack = true, onBack = onBack)
 
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {

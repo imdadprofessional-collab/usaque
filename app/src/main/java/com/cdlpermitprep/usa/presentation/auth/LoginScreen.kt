@@ -1,7 +1,9 @@
 package com.cdlpermitprep.usa.presentation.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,10 +29,16 @@ fun LoginScreen(
         if (uiState.success) onLoggedIn()
     }
 
+    // Scrolls rather than centering: with the keyboard open the available height roughly
+    // halves, and centered content that cannot scroll puts the password field and the sign-in
+    // button out of reach on shorter phones.
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
     ) {
+        Spacer(Modifier.height(48.dp))
         Text("Welcome back.", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Black)
         Text("Sign in to sync your progress across devices.", style = MaterialTheme.typography.bodyLarge, color = CdlColors.TextSecondaryLight)
         Spacer(Modifier.height(32.dp))
