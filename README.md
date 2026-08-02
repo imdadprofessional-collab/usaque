@@ -150,8 +150,40 @@ analytics — carries over unchanged.
 ## Notes on this build
 
 This source tree builds successfully end-to-end via the GitHub Actions workflow in this repo
-(`.github/workflows/android-build.yml` — `assembleDebug` + `bundleRelease` both green), using
-Gradle 8.7/AGP 8.6, Kotlin 1.9, Compose BOM 2024.06. It was developed in an environment without a
-local Android SDK, so local verification happened entirely through that CI workflow rather
-than `./gradlew` on a dev machine — if you hit a version-resolution hiccup opening it in
-Android Studio, let Android Studio's suggested upgrades resolve it.
+(`.github/workflows/android-build.yml` — `assembleDebug` + `bundleRelease` both green, and the
+AAB is signed when the keystore secrets are set). Toolchain:
+
+| | |
+|---|---|
+| Gradle | 8.14.3 |
+| Android Gradle Plugin | 8.13.0 |
+| Kotlin | 2.3.21 |
+| KSP | 2.3.10 |
+| Compose | BOM 2024.06.00, compiler via `org.jetbrains.kotlin.plugin.compose` |
+| Hilt | 2.58 |
+| Room | 2.7.1 |
+| Play Billing | 9.1.0 |
+| compileSdk / targetSdk / minSdk | 35 / 35 / 26 |
+
+Two constraints worth knowing before you bump anything:
+
+- **Kotlin cannot go below 2.3.** Play Billing 9.x is compiled with Kotlin 2.3 and its
+  `.kotlin_module` metadata is version 2.3.0; an older compiler refuses to read it. Since Play
+  requires Billing 8.0.0+ from Aug 31 2026, there is no Billing version that works on Kotlin 1.9.
+- **Hilt cannot go above 2.58 while AGP is on 8.x.** Hilt 2.59+ hard-requires AGP 9.0.0. Equally,
+  AGP cannot go below ~8.11: every KSP release new enough for Kotlin 2.x calls
+  `AndroidComponentsExtension.addKspConfigurations`, which older AGP does not have.
+
+The Compose compiler is configured by the `org.jetbrains.kotlin.plugin.compose` plugin, not by a
+`composeOptions { kotlinCompilerExtensionVersion }` block — that DSL no longer applies under
+Kotlin 2.x.
+
+Release builds log a number of `R8: An error occurred when parsing kotlin metadata` warnings.
+The R8 bundled with AGP 8.13 predates Kotlin 2.3, so it cannot parse the newer metadata. These
+are warnings, not errors, and the build and signing both succeed; they would go away with a
+newer AGP.
+
+It was developed in an environment without a local Android SDK, so verification happened
+entirely through that CI workflow rather than `./gradlew` on a dev machine — if you hit a
+version-resolution hiccup opening it in Android Studio, let Android Studio's suggested upgrades
+resolve it.
