@@ -110,9 +110,10 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Hilt
-    // 2.51.1's annotation processor predates KSP2 (the pipeline KSP 2.3.x runs).
-    implementation("com.google.dagger:hilt-android:2.60.1")
-    ksp("com.google.dagger:hilt-compiler:2.60.1")
+    // 2.51.1's annotation processor predates KSP2 (the pipeline KSP 2.3.x runs); 2.59+
+    // requires AGP 9. Keep this in sync with the Hilt plugin version in the root build file.
+    implementation("com.google.dagger:hilt-android:2.58")
+    ksp("com.google.dagger:hilt-compiler:2.58")
 
     // Room — 2.7.0 is the first release whose KSP processor supports KSP2.
     implementation("androidx.room:room-runtime:2.7.1")

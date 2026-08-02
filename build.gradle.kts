@@ -12,7 +12,9 @@ plugins {
     // plugin; it replaces the old composeOptions.kotlinCompilerExtensionVersion setting.
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.21" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21" apply false
-    id("com.google.dagger.hilt.android") version "2.60.1" apply false
+    // 2.59+ hard-requires AGP 9.0.0; 2.58 is the newest release that still accepts AGP 8.x
+    // (its plugin declares a minimum of 8.4.0) while being new enough to run under KSP2.
+    id("com.google.dagger.hilt.android") version "2.58" apply false
     id("com.google.gms.google-services") version "4.4.2" apply false
     id("com.google.firebase.crashlytics") version "3.0.2" apply false
     // KSP versions are no longer paired to a Kotlin version; 2.3.10 is built against
