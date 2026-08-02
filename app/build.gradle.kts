@@ -134,7 +134,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     // Billing
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:9.1.0")
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
