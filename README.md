@@ -6,7 +6,7 @@ Jetpack Compose, and Clean Architecture / MVVM.
 ## Stack
 
 Kotlin • Jetpack Compose • Material 3 • Hilt • Room + Paging 3 • DataStore • Firebase
-(Auth, Firestore, Analytics, Crashlytics) • Google Play Billing v7 • WorkManager • Coroutines/Flow
+(Auth, Firestore, Analytics, Crashlytics) • Google Play Billing v9 • WorkManager • Coroutines/Flow
 • Navigation Compose • Coil • Timber.
 
 ## Architecture
@@ -151,7 +151,7 @@ analytics — carries over unchanged.
 
 This source tree builds successfully end-to-end via the GitHub Actions workflow in this repo
 (`.github/workflows/android-build.yml` — `assembleDebug` + `bundleRelease` both green), using
-Gradle/AGP 8.5, Kotlin 1.9, Compose BOM 2024.06. It was developed in an environment without a
+Gradle 8.7/AGP 8.6, Kotlin 1.9, Compose BOM 2024.06. It was developed in an environment without a
 local Android SDK, so local verification happened entirely through that CI workflow rather
 than `./gradlew` on a dev machine — if you hit a version-resolution hiccup opening it in
 Android Studio, let Android Studio's suggested upgrades resolve it.
