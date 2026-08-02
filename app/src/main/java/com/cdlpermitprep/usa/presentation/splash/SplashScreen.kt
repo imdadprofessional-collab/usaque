@@ -1,5 +1,6 @@
 package com.cdlpermitprep.usa.presentation.splash
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,9 +11,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cdlpermitprep.usa.R
 import com.cdlpermitprep.usa.presentation.theme.CdlColors
 import kotlinx.coroutines.delay
 
@@ -32,15 +34,13 @@ fun SplashScreen(
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
+        Image(
+            painter = painterResource(R.drawable.icon_cdl),
+            contentDescription = null,
             modifier = Modifier
-                .size(96.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(CdlColors.Yellow),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("CDL", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
-        }
+                .size(112.dp)
+                .clip(RoundedCornerShape(28.dp)),
+        )
         Column(
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 64.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
