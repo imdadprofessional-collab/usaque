@@ -49,13 +49,38 @@ di/             Hilt modules wiring data -> domain
 ## Getting the project running
 
 1. Open the project root in Android Studio (Koala+ recommended).
-2. **Firebase**: `app/google-services.json` in this repo is a **placeholder**. Create a real
-   Firebase project (Authentication + Firestore + Analytics + Crashlytics enabled), and
-   register **two** Android apps in it — `com.cdlpermitprep.usa` (release) and
-   `com.cdlpermitprep.usa.debug` (debug, matches the `applicationIdSuffix` in
-   `app/build.gradle.kts`) — then replace `app/google-services.json` with the file Firebase
-   gives you (it can contain both `client` entries in one file). Skipping the debug entry
-   makes `processDebugGoogleServices` fail with "No matching client found".
+2. **Firebase**: `app/google-services.json` in this repo is a **placeholder**. Setting up the
+   real project requires your Google account in a browser, so it can't be automated from here
+   — walkthrough:
+   1. Go to [console.firebase.google.com](https://console.firebase.google.com) → **Add
+      project** → name it (e.g. "CDL Permit Prep USA") → keep Google Analytics enabled (the
+      app links `firebase-analytics-ktx`).
+   2. **Add app → Android**, twice, both in the *same* project:
+      - Package name `com.cdlpermitprep.usa` (release)
+      - Package name `com.cdlpermitprep.usa.debug` (debug — matches the
+        `applicationIdSuffix` in `app/build.gradle.kts`; skipping this makes
+        `processDebugGoogleServices` fail with "No matching client found")
+      - SHA-1 is optional at this stage; if you want to add it now, the release upload key's
+        fingerprint is `A8:47:A5:92:3A:B3:36:F4:91:60:77:8C:FB:98:42:F6:EC:70:39:2C`.
+   3. Download **google-services.json** from Project settings → General → Your apps (one file
+      covers both registered apps).
+   4. **Build → Authentication → Get started → Sign-in method** → enable **Email/Password**
+      (used by `LoginViewModel.signInWithEmail`/`registerWithEmail`) and **Anonymous** (used by
+      "Continue as Guest", so even guest users get a Firebase identity their gamification/
+      premium status can sync against later).
+   5. **Build → Firestore Database → Create database** → production mode → pick a region →
+      **Rules** tab → paste the contents of `firestore.rules` (already in this repo, scoped so
+      a user can only read/write their own `users/{uid}` document, matching exactly what
+      `UserRepositoryImpl.syncToCloud()` writes).
+   6. **Build → Crashlytics → Enable** (it'll show "waiting for first crash" until the app
+      actually runs with the real config — that's expected).
+   7. Get the JSON into the build: either add it as the `GOOGLE_SERVICES_JSON` GitHub secret
+      (Settings → Secrets and variables → Actions — the workflow already writes it over the
+      placeholder before building, see step 5 under "Building an APK/AAB" below) so CI uses
+      it, and/or replace `app/google-services.json` locally for Android Studio builds. Firebase
+      client config isn't a traditional secret (access is enforced by the security rules
+      above, not by hiding the file), so either approach is fine — the secret keeps it out of
+      a public repo's history, which is the only real reason to prefer it here.
 3. **Billing**: create the following products in Google Play Console once you're ready to test
    purchases (see `data/billing/BillingManager.kt` -> `BillingProducts`):
    - Subscriptions: `cdl_premium_monthly`, `cdl_premium_yearly`

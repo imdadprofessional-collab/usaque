@@ -46,7 +46,16 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    /**
+     * "Continue as Guest": still gets the user a Firebase identity (via anonymous auth) so
+     * their gamification/premium status can sync to Firestore later, without blocking app
+     * usage if that fails — the app must work fully offline regardless of Firebase reachability.
+     */
     fun skipForNow() {
-        _uiState.value = LoginUiState(success = true)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(loading = true, error = null)
+            userRepository.signInAnonymously()
+            _uiState.value = LoginUiState(success = true)
+        }
     }
 }
