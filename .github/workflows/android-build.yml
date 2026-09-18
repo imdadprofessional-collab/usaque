@@ -35,11 +35,31 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # android-actions/setup-android@v3 used to handle this, but it unconditionally tries to
+      # install the legacy "tools" package during its own setup, which Google has since removed
+      # from the SDK repository entirely -- the action now fails outright with "Failed to find
+      # package 'tools'" on every run, regardless of anything in this project. GitHub's own
+      # ubuntu-latest runner image already ships a working Android SDK cmdline-tools install, so
+      # this locates and drives that directly instead of depending on the broken action.
+      - name: Locate Android sdkmanager
+        run: |
+          set -e
+          : "${ANDROID_HOME:=/usr/local/lib/android/sdk}"
+          SDKMANAGER=$(command -v sdkmanager || find "$ANDROID_HOME" -maxdepth 4 -name sdkmanager -type f 2>/dev/null | sort -V | tail -1)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "::error::Could not locate sdkmanager under ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+          echo "Using sdkmanager at: $SDKMANAGER"
+
+      - name: Accept Android SDK licenses
+        run: yes | "$SDKMANAGER" --licenses > /dev/null
 
       - name: Install required SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-36" "platforms;android-35" "platforms;android-34" "build-tools;36.0.0" "build-tools;35.0.0" "build-tools;34.0.0"
+        run: "$SDKMANAGER" "platform-tools" "platforms;android-36" "platforms;android-35" "platforms;android-34" "build-tools;36.0.0" "build-tools;35.0.0" "build-tools;34.0.0"
 
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v4
