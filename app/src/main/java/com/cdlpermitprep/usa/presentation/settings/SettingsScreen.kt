@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cdlpermitprep.usa.presentation.components.CdlCard
 import com.cdlpermitprep.usa.presentation.components.CdlTopBar
+import com.cdlpermitprep.usa.presentation.theme.CdlColors
 
 private val US_STATES = listOf("General", "California", "Texas", "Florida", "New York", "Pennsylvania", "Ohio", "Illinois", "Georgia", "North Carolina")
 
@@ -85,6 +86,23 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+
+            // Required by Play's Misleading Claims policy: any app referencing government
+            // information (this one cites FMCSA/state DMV material) must show a clear,
+            // easy-to-find non-affiliation disclaimer inside the app itself, not just in the
+            // store listing.
+            CdlCard(modifier = Modifier.fillMaxWidth()) {
+                Text("About", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "CDL Permit Prep is an independent study aid. It is not affiliated with, " +
+                        "endorsed by, or a substitute for the FMCSA, any state DMV, or any " +
+                        "government agency, and it does not issue any official license or " +
+                        "credential.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CdlColors.TextSecondaryLight,
+                )
             }
         }
     }
