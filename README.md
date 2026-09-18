@@ -163,7 +163,7 @@ AAB is signed when the keystore secrets are set). Toolchain:
 | Hilt | 2.58 |
 | Room | 2.7.1 |
 | Play Billing | 9.1.0 |
-| compileSdk / targetSdk / minSdk | 35 / 35 / 26 |
+| compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 
 Two constraints worth knowing before you bump anything:
 
@@ -173,6 +173,11 @@ Two constraints worth knowing before you bump anything:
 - **Hilt cannot go above 2.58 while AGP is on 8.x.** Hilt 2.59+ hard-requires AGP 9.0.0. Equally,
   AGP cannot go below ~8.11: every KSP release new enough for Kotlin 2.x calls
   `AndroidComponentsExtension.addKspConfigurations`, which older AGP does not have.
+- **CI drives `sdkmanager` directly rather than through `android-actions/setup-android@v3`.**
+  That action unconditionally tries to install the long-removed legacy `tools` package during
+  its own setup and now fails outright ("Failed to find package 'tools'") on every run. GitHub's
+  `ubuntu-latest` runner ships a working Android SDK cmdline-tools install already, so the
+  workflow locates and drives that `sdkmanager` binary itself instead.
 
 The Compose compiler is configured by the `org.jetbrains.kotlin.plugin.compose` plugin, not by a
 `composeOptions { kotlinCompilerExtensionVersion }` block — that DSL no longer applies under
