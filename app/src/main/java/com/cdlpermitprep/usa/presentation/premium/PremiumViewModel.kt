@@ -17,7 +17,10 @@ data class PremiumUiState(
     val isPremium: Boolean = false,
     val ownedPackIds: Set<String> = emptySet(),
     val message: String? = null,
-)
+) {
+    /** True once loading has finished but Play returned no real products to purchase. */
+    val storeUnavailable: Boolean get() = !loading && !isPremium && products.isEmpty()
+}
 
 @HiltViewModel
 class PremiumViewModel @Inject constructor(
@@ -41,8 +44,14 @@ class PremiumViewModel @Inject constructor(
         loadProducts()
     }
 
-    private fun loadProducts() {
+    /**
+     * Retries querying Play Billing for products. Exposed so the UI can offer a real "Try
+     * again" action instead of ever showing a purchase button for a product that doesn't
+     * actually exist yet.
+     */
+    fun loadProducts() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(loading = true, message = null)
             val products = runCatching { billingRepository.queryProducts() }.getOrDefault(emptyList())
             _uiState.value = _uiState.value.copy(loading = false, products = products)
         }

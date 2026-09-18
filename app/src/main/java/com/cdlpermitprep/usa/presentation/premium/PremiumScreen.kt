@@ -3,11 +3,13 @@ package com.cdlpermitprep.usa.presentation.premium
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -63,12 +65,33 @@ fun PremiumScreen(
                         Text("Every category is unlocked.", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
+            } else if (state.loading) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (state.storeUnavailable) {
+                // Never render a purchase button for a product Play Billing didn't actually
+                // return -- a "Buy" button that always fails with "item not found" is exactly
+                // the kind of unresponsive/broken UI element Play's review flags and rejects.
+                item {
+                    CdlCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("Store unavailable", fontWeight = FontWeight.Bold)
+                        Text(
+                            "We couldn't load purchase options. Check your connection and try again.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = CdlColors.TextSecondaryLight,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        CdlOutlineButton(text = "Try Again", onClick = viewModel::loadProducts)
+                    }
+                }
             } else {
                 item {
                     Text("Subscriptions", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
-                val allProducts = state.products.ifEmpty { placeholderProducts() }
-                items(allProducts.filter { it.tier != PremiumTier.NONE }) { product ->
+                items(state.products.filter { it.tier != PremiumTier.NONE }) { product ->
                     ProductCard(product = product, owned = false, onClick = { viewModel.purchase(product.productId) })
                 }
 
@@ -77,7 +100,7 @@ fun PremiumScreen(
                     Text("Or unlock just one topic", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text("One-time purchase, no subscription required.", style = MaterialTheme.typography.bodyMedium, color = CdlColors.TextSecondaryLight)
                 }
-                val packProducts = allProducts.filter { it.tier == PremiumTier.NONE }
+                val packProducts = state.products.filter { it.tier == PremiumTier.NONE }
                 items(packProducts) { product ->
                     val owned = product.productId in state.ownedPackIds
                     val label = packLabels[product.productId]
@@ -111,7 +134,7 @@ private fun ProductCard(
     subtitle: String? = null,
 ) {
     CdlCard(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.title.ifBlank { product.productId }, fontWeight = FontWeight.Bold)
                 Text(
@@ -128,10 +151,3 @@ private fun ProductCard(
         }
     }
 }
-
-// Shown while Play Billing product details are loading (e.g. no network) so the screen isn't empty.
-private fun placeholderProducts() = listOf(
-    BillingProduct(BillingProducts.MONTHLY_SUB, "Monthly", "", PremiumTier.MONTHLY),
-    BillingProduct(BillingProducts.YEARLY_SUB, "Yearly (Best Value)", "", PremiumTier.YEARLY),
-    BillingProduct(BillingProducts.LIFETIME, "Lifetime", "", PremiumTier.LIFETIME),
-) + BillingProducts.PREMIUM_PACKS.map { BillingProduct(it, "", "", PremiumTier.NONE) }
